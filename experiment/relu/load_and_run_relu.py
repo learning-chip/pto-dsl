@@ -34,21 +34,22 @@ def test_add():
     dtype = torch.float32
 
     shape = [32, 32]  # shape hard-coded as the kernel
+    torch.manual_seed(0)
     x = torch.rand(shape, device=device, dtype=dtype) - 0.5
     y = torch.empty(shape, device=device, dtype=dtype)
-
-    print("x:", x)
-    print("y_before:", y)
 
     relu_func = load_lib("./relu_kernel.so")
     relu_func(x, y)
     torch.npu.synchronize()
 
-    print("y_after:", y)
+    y_ref = torch.nn.functional.relu(x)
+    print("first row of y", y[0,:])
+    print("first row of y_ref", y_ref[0,:])
+    torch.testing.assert_close(y[0,:], y_ref[0,:])
+    print("first row equal!")
 
-    # y_ref = torch.nn.functional.relu(x)
-    # torch.testing.assert_close(y, y_ref)
-    # print("test pass!")
+    print("second row of y", y[1,:])
+    print("second row of y_ref", y_ref[1,:])
 
 if __name__ == "__main__":
     test_add()
