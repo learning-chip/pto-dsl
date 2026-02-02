@@ -1,5 +1,3 @@
-#if __CCE_AICORE__ == 220 && defined(__DAV_C220_VEC__)
-#define MEMORY_BASE
 #include <pto/pto-inst.hpp>
 using namespace pto;
 
@@ -19,6 +17,8 @@ constexpr uint32_t tileNum = 2;                        // tile number on one vec
 
 template <typename T, unsigned tileRows, unsigned tileCols>
 AICORE void runTAdd(__gm__ T *z, __gm__ T *x, __gm__ T *y, uint32_t totalLength) {
+    #if __CCE_AICORE__ == 220 && defined(__DAV_C220_VEC__)
+
     set_mask_norm();
     set_vector_mask(-1, -1);
     static_assert(BLOCK_ROWS * BLOCK_COLS == BLOCK_DIM, "Wrong block tilling!");
@@ -100,6 +100,11 @@ AICORE void runTAdd(__gm__ T *z, __gm__ T *x, __gm__ T *y, uint32_t totalLength)
     wait_flag(PIPE_MTE3, PIPE_V, EVENT_ID1);
     TASSIGN(zGlobal, z);
     z = zGlobal.data();
+
+    #else  // else branch for `#if defined(__DAV_C220_VEC__)`
+    // do nothing for Cube branch
+    #endif
+
 }
 
 // kernel entry
@@ -111,18 +116,9 @@ __global__ AICORE void add_custom(__gm__ void* x, __gm__ void* y, __gm__ void* z
     runTAdd<half, tileRows, tileCols>((__gm__ half *)z, (__gm__ half *)x, (__gm__ half *)y, totalLength);
 }
 
-#else  // else branch for `#if defined(__DAV_C220_VEC__)`
-
-// NOTE: `AICORE` is not recognized here
-__global__ [aicore] void add_custom(__gm__ void* x, __gm__ void* y, __gm__ void* z, uint32_t totalLength) {
-    // do nothing for Cube branch, just ensure `add_custom` is defined globally
-}
-
 extern "C" void call_kernel(
     uint32_t blockDim, void* stream,
     uint8_t* x, uint8_t* y, uint8_t* z, int N)
 {
     add_custom<<<blockDim, nullptr, stream>>>(x, y, z, N);
 }
-
-#endif
