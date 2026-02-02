@@ -11,23 +11,23 @@ def build():
 
         m = Module.create()
 
-        f32 = F32Type.get(ctx)
-        ptr_f32 = pto.PtrType.get(f32, ctx)
+        f32 = F32Type.get()
+        ptr_f32 = pto.PtrType.get(f32)
 
-        tv2_f32 = pto.TensorViewType.get(2, f32, ctx)
-        tile_view_32 = pto.TileViewType.get([32, 32], f32, ctx)
-        ub = pto.AddressSpaceAttr.get(pto.AddressSpace.UB, ctx)
-        bl = pto.BLayoutAttr.get(pto.BLayout.RowMajor, ctx)
-        sl = pto.SLayoutAttr.get(pto.SLayout.NoneBox, ctx)
-        pd = pto.PadValueAttr.get(pto.PadValue.Null, ctx)
+        tv2_f32 = pto.TensorViewType.get(2, f32)
+        tile_view_32 = pto.TileViewType.get([32, 32], f32)
+        ub = pto.AddressSpaceAttr.get(pto.AddressSpace.UB)
+        bl = pto.BLayoutAttr.get(pto.BLayout.RowMajor)
+        sl = pto.SLayoutAttr.get(pto.SLayout.NoneBox)
+        pd = pto.PadValueAttr.get(pto.PadValue.Null)
 
-        cfg = pto.TileBufConfigAttr.get(bl, sl, 512, pd, ctx)
-        tile_buf_32 = pto.TileBufType.get([32, 32], f32, ub, [32, 32], cfg, ctx)
+        cfg = pto.TileBufConfigAttr.get(bl, sl, 512, pd)
+        tile_buf_32 = pto.TileBufType.get([32, 32], f32, ub, [32, 32], cfg)
 
-        PIPE_MTE2 = Attribute.parse("#pto.pipe<PIPE_MTE2>", ctx)
-        PIPE_V = Attribute.parse("#pto.pipe<PIPE_V>", ctx)
-        PIPE_MTE3 = Attribute.parse("#pto.pipe<PIPE_MTE3>", ctx)
-        EVENT_ID0 = Attribute.parse("#pto.event<EVENT_ID0>", ctx)
+        PIPE_MTE2 = Attribute.parse("#pto.pipe<PIPE_MTE2>")
+        PIPE_V = Attribute.parse("#pto.pipe<PIPE_V>")
+        PIPE_MTE3 = Attribute.parse("#pto.pipe<PIPE_MTE3>")
+        EVENT_ID0 = Attribute.parse("#pto.event<EVENT_ID0>")
 
         fn_ty = func.FunctionType.get([ptr_f32, ptr_f32], [])
         with InsertionPoint(m.body):
@@ -35,9 +35,9 @@ def build():
             entry = fn.add_entry_block()
 
         with InsertionPoint(entry):
-            c0 = arith.ConstantOp(IndexType.get(ctx), 0).result
-            c1 = arith.ConstantOp(IndexType.get(ctx), 1).result
-            c32 = arith.ConstantOp(IndexType.get(ctx), 32).result
+            c0 = arith.ConstantOp(IndexType.get(), 0).result
+            c1 = arith.ConstantOp(IndexType.get(), 1).result
+            c32 = arith.ConstantOp(IndexType.get(), 32).result
 
             arg0, arg1 = entry.arguments
 
