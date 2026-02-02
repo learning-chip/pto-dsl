@@ -6,4 +6,5 @@ Compile steps in order:
 5. Get shared lib by `bisheng` on the cpp source
 6. Load so and kernel launch with torch_npu inputs
 7. Accuracy and performance check in torch_npu
+
 (5-7 are ready in https://gitcode.com/cann/pto-isa/pull/166, https://gitcode.com/cann/pto-isa/pull/239, https://gitcode.com/cann/pto-isa/pull/221)
