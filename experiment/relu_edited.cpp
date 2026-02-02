@@ -1,7 +1,10 @@
-#if __CCE_AICORE__ == 220 && defined(__DAV_C220_VEC__)
-#include "common/pto_instr.hpp"
+#include <pto/pto-inst.hpp>
 using namespace pto;
+
 __global__ AICORE void sync_kernel_2d(__gm__ float* v1, __gm__ float* v2) {
+
+  #if __CCE_AICORE__ == 220 && defined(__DAV_C220_VEC__)
+
   unsigned v3 = 1;
   unsigned v4 = 0;
   int32_t v5 = 32;
@@ -46,8 +49,17 @@ __global__ AICORE void sync_kernel_2d(__gm__ float* v1, __gm__ float* v2) {
   set_flag(PIPE_V, PIPE_MTE3, EVENT_ID0);
   wait_flag(PIPE_V, PIPE_MTE3, EVENT_ID0);
   TSTORE(v28, v30);
+
+  #else  // else branch for `#if defined(__DAV_C220_VEC__)`
+  // cube part, do nothing for this vector kernel
+  #endif
+
   return;
 }
 
-
-#endif
+extern "C" void call_kernel(
+    uint32_t blockDim, void* stream,
+    uint8_t* v1, uint8_t* v2)
+{
+    sync_kernel_2d<<<blockDim, nullptr, stream>>>((float *)v1, (float *)v2);
+}
