@@ -14,15 +14,17 @@ def build():
         f32 = F32Type.get()
         ptr_f32 = pto.PtrType.get(f32)
 
-        tv2_f32 = pto.TensorViewType.get(2, f32)
-        tile_view_32 = pto.PartitionTensorViewType.get([32, 32], f32)
+        tv2_f32 = pto.TensorViewType.get(shape_or_rank=2, element_type=f32)
+        tile_view_32 = pto.PartitionTensorViewType.get(shape=[32, 32], element_type=f32)
         ub = pto.AddressSpaceAttr.get(pto.AddressSpace.UB)
         bl = pto.BLayoutAttr.get(pto.BLayout.RowMajor)
         sl = pto.SLayoutAttr.get(pto.SLayout.NoneBox)
         pd = pto.PadValueAttr.get(pto.PadValue.Null)
 
-        cfg = pto.TileBufConfigAttr.get(bl, sl, 512, pd)
-        tile_buf_32 = pto.TileBufType.get([32, 32], f32, ub, [32, 32], cfg)
+        cfg = pto.TileBufConfigAttr.get(
+            blayout=bl, slayout=sl, s_fractal_size=512, pad=pd)
+        tile_buf_32 = pto.TileBufType.get(
+            shape=[32, 32], element_type=f32, memory_space=ub, valid_shape=[32, 32], config=cfg)
 
         PIPE_MTE2 = Attribute.parse("#pto.pipe<PIPE_MTE2>")
         PIPE_V = Attribute.parse("#pto.pipe<PIPE_V>")
