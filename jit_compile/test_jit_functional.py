@@ -24,7 +24,7 @@ def meta_data():
 
 
 @jit_compile(meta_data=meta_data)
-def sync_kernel_2d(x_ptr: "ptr_type", y_ptr: "ptr_type"):
+def relu_kernel(x_ptr: "ptr_type", y_ptr: "ptr_type"):
     c0 = const(0)
     c1 = const(1)
     c32 = const(32)
@@ -51,11 +51,7 @@ def sync_kernel_2d(x_ptr: "ptr_type", y_ptr: "ptr_type"):
     # default to `return None`
 
 
-# Compiled callable (lazy: compiles on first call)
-func = sync_kernel_2d
-
-
-def test_e2e_jit(launch_kernel=True):
+def test_e2e_jit():
     device = "npu:1"
     torch.npu.set_device(device)
 
@@ -65,7 +61,7 @@ def test_e2e_jit(launch_kernel=True):
     x = torch.rand(shape, device=device, dtype=dtype) - 0.5
     y = torch.zeros(shape, device=device, dtype=dtype)
 
-    func(x, y)
+    relu_kernel(x, y)
     torch.npu.synchronize()
 
     y_ref = torch.nn.functional.relu(x)
