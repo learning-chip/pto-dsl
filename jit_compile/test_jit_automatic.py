@@ -2,7 +2,7 @@ import torch
 import torch_npu
 
 import ptodsl.language as pto
-from ptodsl.jit import pto_meta_data, inject_meta, jit_compile
+from ptodsl.jit import pto_meta_data, jit_compile
 
 const = pto.const
 
@@ -23,11 +23,8 @@ def meta_data():
     return [ptr_type, tensor_type, subtensor_type, tile_type]
 
 
-inject_meta(meta_data)  # inject types into this module so kernel annotations resolve
-
-
 @jit_compile(meta_data=meta_data)
-def sync_kernel_2d(x_ptr: ptr_type, y_ptr: ptr_type):
+def sync_kernel_2d(x_ptr: "ptr_type", y_ptr: "ptr_type"):
     c0 = const(0)
     c1 = const(1)
     c32 = const(32)

@@ -32,21 +32,15 @@ def _call_meta_and_capture_env(meta_fn):
     return result, env
 
 
-def inject_meta(meta_fn):
-    """Call meta_fn() and inject its local namespace into the caller's globals (so types are in scope for kernel defs)."""
-    _result, env = _call_meta_and_capture_env(meta_fn)
-    frame = sys._getframe(1)
-    frame.f_globals.update(env)
-
-
 def pto_meta_data(f):
     """Decorator that marks a function as the meta-data provider (types, config) for jit_compile."""
     return f
 
 
 def jit_compile(meta_data=None):
-    """Decorator: build module from the kernel using meta_data env, compile to a shared lib, and replace with the loaded callable."""
-
+    """Decorator: build module from the kernel using meta_data env, compile to a shared lib, and replace with the loaded callable.
+    meta_data() is run inside the same ir_builder() scope as the kernel so type construction has an MLIR context.
+    Use string annotations for types from meta (e.g. x: \"ptr_type\") so they are resolved from meta_data's env."""
     def decorator(kernel_fn):
         compiled_func = None
 
@@ -54,17 +48,22 @@ def jit_compile(meta_data=None):
         def wrapper(*args, **kwargs):
             nonlocal compiled_func
             if compiled_func is None:
-                _result, env = _call_meta_and_capture_env(meta_data)
-                kernel_globals = {**kernel_fn.__globals__, **env}
-                kernel_with_env = type(kernel_fn)(
-                    kernel_fn.__code__,
-                    kernel_globals,
-                    kernel_fn.__name__,
-                    kernel_fn.__defaults__,
-                    kernel_fn.__closure__,
-                )
-                kernel_with_env.__annotations__ = kernel_fn.__annotations__
                 with ir_builder() as module:
+                    _result, env = _call_meta_and_capture_env(meta_data)
+                    kernel_globals = {**kernel_fn.__globals__, **env}
+                    kernel_with_env = type(kernel_fn)(
+                        kernel_fn.__code__,
+                        kernel_globals,
+                        kernel_fn.__name__,
+                        kernel_fn.__defaults__,
+                        kernel_fn.__closure__,
+                    )
+                    ann = kernel_fn.__annotations__
+                    resolved = {
+                        k: env[v] if isinstance(v, str) and v in env else v
+                        for k, v in ann.items()
+                    }
+                    kernel_with_env.__annotations__ = resolved
                     register_function(kernel_with_env)
                 lib_path = compile_module(module)
                 compiled_func = load_lib(lib_path)
