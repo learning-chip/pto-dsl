@@ -2,12 +2,77 @@
 
 import os
 import subprocess
+import sys
 from pathlib import Path
 import ctypes
+import functools
 
 import torch
 
+from ptodsl import ir_builder, register_function
 from ptodsl.edit_cpp import convert
+
+
+def _call_meta_and_capture_env(meta_fn):
+    """Run meta_fn() and capture its local namespace (for types etc.). Returns (return_value, env dict)."""
+    env = {}
+
+    def trace(frame, event, arg):
+        if event == "return":
+            env.clear()
+            env.update(frame.f_locals)
+        return trace
+
+    old_trace = sys.gettrace()
+    sys.settrace(trace)
+    try:
+        result = meta_fn()
+    finally:
+        sys.settrace(old_trace)
+    return result, env
+
+
+def inject_meta(meta_fn):
+    """Call meta_fn() and inject its local namespace into the caller's globals (so types are in scope for kernel defs)."""
+    _result, env = _call_meta_and_capture_env(meta_fn)
+    frame = sys._getframe(1)
+    frame.f_globals.update(env)
+
+
+def pto_meta_data(f):
+    """Decorator that marks a function as the meta-data provider (types, config) for jit_compile."""
+    return f
+
+
+def jit_compile(meta_data=None):
+    """Decorator: build module from the kernel using meta_data env, compile to a shared lib, and replace with the loaded callable."""
+
+    def decorator(kernel_fn):
+        compiled_func = None
+
+        @functools.wraps(kernel_fn)
+        def wrapper(*args, **kwargs):
+            nonlocal compiled_func
+            if compiled_func is None:
+                _result, env = _call_meta_and_capture_env(meta_data)
+                kernel_globals = {**kernel_fn.__globals__, **env}
+                kernel_with_env = type(kernel_fn)(
+                    kernel_fn.__code__,
+                    kernel_globals,
+                    kernel_fn.__name__,
+                    kernel_fn.__defaults__,
+                    kernel_fn.__closure__,
+                )
+                kernel_with_env.__annotations__ = kernel_fn.__annotations__
+                with ir_builder() as module:
+                    register_function(kernel_with_env)
+                lib_path = compile_module(module)
+                compiled_func = load_lib(lib_path)
+            return compiled_func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 def compile_module(module, clean_up=True, timeout=20):
