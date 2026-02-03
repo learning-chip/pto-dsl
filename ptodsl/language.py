@@ -34,13 +34,11 @@ def _addr_space(s):
     return pto.AddressSpaceAttr.get(getattr(pto.AddressSpace, s))
 
 
-# --- Scalar / dtype (descriptor so "pto.float32" works inside ir_builder) ---
-class _LazyF32:
-    def __get__(self, obj, owner=None):
+# --- Scalar / dtype: pto.float32 resolved via __getattr__ (module attrs don't use __get__) ---
+def __getattr__(name):
+    if name == "float32":
         return F32Type.get()
-
-
-float32 = _LazyF32()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 # --- Types ---
