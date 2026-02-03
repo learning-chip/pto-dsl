@@ -34,10 +34,12 @@ def _addr_space(s):
     return pto.AddressSpaceAttr.get(getattr(pto.AddressSpace, s))
 
 
-# --- Scalar / dtype: pto.float32 resolved via __getattr__ (module attrs don't use __get__) ---
+# --- Lazy attrs: pto.float32, pto.PIPE_MTE2, etc. resolved via __getattr__ (module attrs don't use __get__) ---
 def __getattr__(name):
     if name == "float32":
         return F32Type.get()
+    if name in ("PIPE_MTE2", "PIPE_V", "PIPE_MTE3", "EVENT_ID0"):
+        return _get().attrs[name]
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
@@ -74,21 +76,6 @@ def TileBufType(shape, dtype, memory_space="UB", config=None, valid_shape=None):
         valid_shape=valid_shape,
         config=config,
     )
-
-
-# --- Constants (pipe/event attrs; descriptors so "pto.PIPE_MTE2" works) ---
-class _PipeEventAttr:
-    def __init__(self, name):
-        self.name = name
-
-    def __get__(self, obj, owner=None):
-        return _get().attrs[self.name]
-
-
-PIPE_MTE2 = _PipeEventAttr("PIPE_MTE2")
-PIPE_V = _PipeEventAttr("PIPE_V")
-PIPE_MTE3 = _PipeEventAttr("PIPE_MTE3")
-EVENT_ID0 = _PipeEventAttr("EVENT_ID0")
 
 
 # --- Index constant ---
