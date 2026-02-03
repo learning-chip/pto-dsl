@@ -9,8 +9,6 @@ def build():
     with Context() as ctx, Location.unknown():
         pto.register_dialect(ctx, load=True)
 
-        m = Module.create()
-
         f32 = F32Type.get()
         ptr_f32 = pto.PtrType.get(f32)
 
@@ -32,6 +30,8 @@ def build():
         EVENT_ID0 = Attribute.parse("#pto.event<EVENT_ID0>")
 
         fn_ty = func.FunctionType.get([ptr_f32, ptr_f32], [])
+
+        m = Module.create()
         with InsertionPoint(m.body):
             fn = func.FuncOp("sync_kernel_2d", fn_ty)
             entry = fn.add_entry_block()
