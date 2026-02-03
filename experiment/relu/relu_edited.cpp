@@ -1,4 +1,4 @@
-#include <pto/pto-inst.hpp>
+#include "pto/pto-inst.hpp"
 using namespace pto;
 
 __global__ AICORE void sync_kernel_2d(__gm__ float* v1, __gm__ float* v2) {
