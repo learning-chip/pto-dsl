@@ -9,59 +9,56 @@ def build():
     with Context() as ctx, Location.unknown():
         pto.register_dialect(ctx, load=True)
 
-        f32 = F32Type.get()
-        ptr_f32 = pto.PtrType.get(f32)
-
-        tv2_f32 = pto.TensorViewType.get(shape_or_rank=2, element_type=f32)
-        tile_view_32 = pto.PartitionTensorViewType.get(shape=[32, 32], element_type=f32)
-        ub = pto.AddressSpaceAttr.get(pto.AddressSpace.UB)
-        bl = pto.BLayoutAttr.get(pto.BLayout.RowMajor)
-        sl = pto.SLayoutAttr.get(pto.SLayout.NoneBox)
-        pd = pto.PadValueAttr.get(pto.PadValue.Null)
-
-        cfg = pto.TileBufConfigAttr.get(
-            blayout=bl, slayout=sl, s_fractal_size=512, pad=pd)
-        tile_buf_32 = pto.TileBufType.get(
-            shape=[32, 32], element_type=f32, memory_space=ub, valid_shape=[32, 32], config=cfg)
-
-        PIPE_MTE2 = Attribute.parse("#pto.pipe<PIPE_MTE2>")
-        PIPE_V = Attribute.parse("#pto.pipe<PIPE_V>")
-        PIPE_MTE3 = Attribute.parse("#pto.pipe<PIPE_MTE3>")
-        EVENT_ID0 = Attribute.parse("#pto.event<EVENT_ID0>")
-
-        fn_ty = func.FunctionType.get([ptr_f32, ptr_f32], [])
-
         m = Module.create()
         with InsertionPoint(m.body):
+            # common type declare
+            f32 = F32Type.get()
+            ptr_f32 = pto.PtrType.get(f32)
+            tv2_f32 = pto.TensorViewType.get(shape_or_rank=2, element_type=f32)
+            tile_view_32 = pto.PartitionTensorViewType.get(shape=[32, 32], element_type=f32)
+            ub = pto.AddressSpaceAttr.get(pto.AddressSpace.UB)
+            bl = pto.BLayoutAttr.get(pto.BLayout.RowMajor)
+            sl = pto.SLayoutAttr.get(pto.SLayout.NoneBox)
+            pd = pto.PadValueAttr.get(pto.PadValue.Null)
+
+            cfg = pto.TileBufConfigAttr.get(
+                blayout=bl, slayout=sl, s_fractal_size=512, pad=pd)
+            tile_buf_32 = pto.TileBufType.get(
+                shape=[32, 32], element_type=f32, memory_space=ub, valid_shape=[32, 32], config=cfg)
+
+            PIPE_MTE2 = Attribute.parse("#pto.pipe<PIPE_MTE2>")
+            PIPE_V = Attribute.parse("#pto.pipe<PIPE_V>")
+            PIPE_MTE3 = Attribute.parse("#pto.pipe<PIPE_MTE3>")
+            EVENT_ID0 = Attribute.parse("#pto.event<EVENT_ID0>")
+
+            fn_ty = func.FunctionType.get([ptr_f32, ptr_f32], [])
             fn = func.FuncOp("sync_kernel_2d", fn_ty)
-            entry = fn.add_entry_block()
+            with InsertionPoint(fn.add_entry_block()):
+                c0 = arith.ConstantOp(IndexType.get(), 0).result
+                c1 = arith.ConstantOp(IndexType.get(), 1).result
+                c32 = arith.ConstantOp(IndexType.get(), 32).result
 
-        with InsertionPoint(entry):
-            c0 = arith.ConstantOp(IndexType.get(), 0).result
-            c1 = arith.ConstantOp(IndexType.get(), 1).result
-            c32 = arith.ConstantOp(IndexType.get(), 32).result
+                arg0, arg1 = fn.arguments
 
-            arg0, arg1 = entry.arguments
+                tv0 = pto.MakeTensorViewOp(tv2_f32, ptr=arg0, shape=[c32, c32], strides=[c32, c1]).result
+                tv1 = pto.MakeTensorViewOp(tv2_f32, ptr=arg1, shape=[c32, c32], strides=[c32, c1]).result
 
-            tv0 = pto.MakeTensorViewOp(tv2_f32, ptr=arg0, shape=[c32, c32], strides=[c32, c1]).result
-            tv1 = pto.MakeTensorViewOp(tv2_f32, ptr=arg1, shape=[c32, c32], strides=[c32, c1]).result
+                sv0 = pto.PartitionViewOp(tile_view_32, source=tv0, offsets=[c0, c0], sizes=[c32, c32]).result
+                sv1 = pto.PartitionViewOp(tile_view_32, source=tv1, offsets=[c0, c0], sizes=[c32, c32]).result
 
-            sv0 = pto.PartitionViewOp(tile_view_32, source=tv0, offsets=[c0, c0], sizes=[c32, c32]).result
-            sv1 = pto.PartitionViewOp(tile_view_32, source=tv1, offsets=[c0, c0], sizes=[c32, c32]).result
+                tb0 = pto.AllocTileOp(tile_buf_32).result
+                tb1 = pto.AllocTileOp(tile_buf_32).result
 
-            tb0 = pto.AllocTileOp(tile_buf_32).result
-            tb1 = pto.AllocTileOp(tile_buf_32).result
+                pto.TLoadOp(None, sv0, tb0)
+                pto.SetFlagOp(PIPE_MTE2, PIPE_V, EVENT_ID0)
+                pto.WaitFlagOp(PIPE_MTE2, PIPE_V, EVENT_ID0)
 
-            pto.TLoadOp(None, sv0, tb0)
-            pto.SetFlagOp(PIPE_MTE2, PIPE_V, EVENT_ID0)
-            pto.WaitFlagOp(PIPE_MTE2, PIPE_V, EVENT_ID0)
+                pto.TReluOp(tb0, tb1)
+                pto.SetFlagOp(PIPE_V, PIPE_MTE3, EVENT_ID0)
+                pto.WaitFlagOp(PIPE_V, PIPE_MTE3, EVENT_ID0)
 
-            pto.TReluOp(tb0, tb1)
-            pto.SetFlagOp(PIPE_V, PIPE_MTE3, EVENT_ID0)
-            pto.WaitFlagOp(PIPE_V, PIPE_MTE3, EVENT_ID0)
-
-            pto.TStoreOp(None, tb1, sv1)
-            func.ReturnOp([])
+                pto.TStoreOp(None, tb1, sv1)
+                func.ReturnOp([])
 
         m.operation.verify()
         return m
