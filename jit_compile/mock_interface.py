@@ -17,10 +17,6 @@ def build_module():
         # NOTE: valid_shape=shape if not specified
 
         const = pto.const
-        PIPE_MTE2 = pto.PIPE_MTE2
-        PIPE_MTE3 = pto.PIPE_MTE3
-        PIPE_V = pto.PIPE_V
-        EVENT_ID = pto.EVENT_ID0
 
         @register_function
         def sync_kernel_2d(x_ptr: ptr_type, y_ptr: ptr_type):
@@ -39,12 +35,12 @@ def build_module():
             tb1 = pto.alloc_tile(tile_type)
 
             pto.load(sv0, tb0)
-            pto.set_flag(PIPE_MTE2, PIPE_V, EVENT_ID)
-            pto.wait_flag(PIPE_MTE2, PIPE_V, EVENT_ID)
+            pto.set_flag("MTE2", "V", event_id=0)
+            pto.wait_flag("MTE2", "V", event_id=0)
 
             pto.relu(tb0, tb1)
-            pto.set_flag(PIPE_V, PIPE_MTE3, EVENT_ID)
-            pto.wait_flag(PIPE_V, PIPE_MTE3, EVENT_ID)
+            pto.set_flag("V", "MTE3", event_id=0)
+            pto.wait_flag("V", "MTE3", event_id=0)
 
             pto.store(tb1, sv1)
             # default to `return None`

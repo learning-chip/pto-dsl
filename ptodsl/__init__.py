@@ -29,7 +29,7 @@ def ir_builder():
                 "PIPE_MTE2": Attribute.parse("#pto.pipe<PIPE_MTE2>"),
                 "PIPE_V": Attribute.parse("#pto.pipe<PIPE_V>"),
                 "PIPE_MTE3": Attribute.parse("#pto.pipe<PIPE_MTE3>"),
-                "EVENT_ID0": Attribute.parse("#pto.event<EVENT_ID0>"),
+                **{f"EVENT_ID{i}": Attribute.parse(f"#pto.event<EVENT_ID{i}>") for i in range(8)},
             }
             token = language._builder_var.set(builder)
             try:

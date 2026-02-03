@@ -102,12 +102,25 @@ def load(source_view, tile_buf):
     pto.TLoadOp(None, source_view, tile_buf)
 
 
-def set_flag(pipe_from, pipe_to, event):
-    pto.SetFlagOp(pipe_from, pipe_to, event)
+def _pipe_attr(name):
+    """Map string pipe name to MLIR pipe attribute. e.g. 'MTE2' -> PIPE_MTE2."""
+    key = f"PIPE_{name}" if not name.startswith("PIPE_") else name
+    return _get().attrs[key]
 
 
-def wait_flag(pipe_from, pipe_to, event):
-    pto.WaitFlagOp(pipe_from, pipe_to, event)
+def _event_attr(event_id):
+    """Map event_id (int 0..7) to MLIR event attribute. e.g. 0 -> EVENT_ID0."""
+    if not 0 <= event_id <= 7:
+        raise ValueError(f"event_id must be 0..7, got {event_id}")
+    return _get().attrs[f"EVENT_ID{event_id}"]
+
+
+def set_flag(src_pipe: str, dst_pipe: str, *, event_id: int):
+    pto.SetFlagOp(_pipe_attr(src_pipe), _pipe_attr(dst_pipe), _event_attr(event_id))
+
+
+def wait_flag(src_pipe: str, dst_pipe: str, *, event_id: int):
+    pto.WaitFlagOp(_pipe_attr(src_pipe), _pipe_attr(dst_pipe), _event_attr(event_id))
 
 
 def relu(input_tile, output_tile):
