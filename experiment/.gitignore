@@ -1,5 +1,6 @@
 *.pto
 *_generated.cpp
 
+*.txt
 *.log
 *.so
