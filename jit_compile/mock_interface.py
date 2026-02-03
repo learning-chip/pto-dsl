@@ -1,5 +1,5 @@
 from ptodsl import ir_builder, register_function
-from ptodsl.language as pto
+import ptodsl.language as pto
 
 
 def build_module():
@@ -39,12 +39,12 @@ def build_module():
             tb1 = pto.alloc_tile(tile_type)
 
             pto.load(sv0, tb0)
-            pto.set_flag(PIPE_MTE2, PIPE_V, EVENT_ID0)
-            pto.wait_flag(PIPE_MTE2, PIPE_V, EVENT_ID0)
+            pto.set_flag(PIPE_MTE2, PIPE_V, EVENT_ID)
+            pto.wait_flag(PIPE_MTE2, PIPE_V, EVENT_ID)
 
             pto.relu(tb0, tb1)
-            pto.set_flag(PIPE_V, PIPE_MTE3, EVENT_ID0)
-            pto.wait_flag(PIPE_V, PIPE_MTE3, EVENT_ID0)
+            pto.set_flag(PIPE_V, PIPE_MTE3, EVENT_ID)
+            pto.wait_flag(PIPE_V, PIPE_MTE3, EVENT_ID)
 
             pto.store(tb1, sv1)
             # default to `return None`
