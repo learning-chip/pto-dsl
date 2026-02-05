@@ -8,17 +8,17 @@ ARG ARCH=x86_64
 ARG RELEASE_REPO=learning-chip/PTOAS
 # ARG RELEASE_REPO=zhangstevenunity/PTOAS
 ARG RELEASE_TAG=20260205.post1
+ARG WHEEL_NAME=ptoas-0.1.1-cp311-none-manylinux_2_34_${ARCH}.whl
+ARG CLI_TAR_NAME=ptoas-bin-${ARCH}.tar.gz
 
 WORKDIR /installers/
 
 # download assets from github release page
 RUN apt update && apt install -y wget git vim
-ARG WHEEL_NAME=ptoas-0.1.1-cp311-none-manylinux_2_34_${ARCH}.whl
 RUN wget https://github.com/${RELEASE_REPO}/releases/download/${RELEASE_TAG}/${WHEEL_NAME}
 RUN pip install ./${WHEEL_NAME}
 RUN python -c "import mlir.ir; from mlir.dialects import pto"
 
-ARG CLI_TAR_NAME=ptoas-bin-${ARCH}.tar.gz
 RUN wget https://github.com/${RELEASE_REPO}/releases/download/${RELEASE_TAG}/${CLI_TAR_NAME}
 
 # set up correct lib path for `ptoas` cli
