@@ -12,6 +12,7 @@ ARG RELEASE_TAG=20260205.post1
 WORKDIR /installers/
 
 # download assets from github release page
+RUN apt update && apt install -y wget git vim
 ARG WHEEL_NAME=ptoas-0.1.1-cp311-none-manylinux_2_34_${ARCH}.whl
 RUN wget https://github.com/${RELEASE_REPO}/releases/download/${RELEASE_TAG}/${WHEEL_NAME}
 RUN pip install ./${WHEEL_NAME}
