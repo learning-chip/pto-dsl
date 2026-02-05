@@ -1,4 +1,7 @@
-FROM quay.io/ascend/cann:8.5.0-910b-ubuntu22.04-py3.11
+# FROM quay.io/ascend/cann:8.5.0-910b-ubuntu22.04-py3.11
+FROM quay.io/ascend/python:3.11-ubuntu22.04
+# Use the `cann` base image if need to use bisheng and run on device
+# use `python` base image if just to test binding + ptoas
 
 ARG ARCH=x86_64
 # ARG ARCH=aarch64
