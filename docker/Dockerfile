@@ -32,10 +32,20 @@ ENV LD_LIBRARY_PATH=$CLI_DIR/lib:$LD_LIBRARY_PATH
 # test python binding + cli usage
 WORKDIR /tests/
 RUN wget https://raw.githubusercontent.com/${RELEASE_REPO}/refs/tags/${RELEASE_TAG}/test/samples/Abs/abs.py
-RUN wget https://raw.githubusercontent.com/${RELEASE_REPO}/refs/tags/${RELEASE_TAG}/test/samples/MatMul/tmatmulk.py 
+RUN wget https://raw.githubusercontent.com/${RELEASE_REPO}/refs/tags/${RELEASE_TAG}/test/samples/MatMul/tmatmulk.py
 
 RUN python ./tmatmulk.py > ./tmatmulk.pto
 RUN ptoas ./tmatmulk.pto -o ./tmatmulk.cpp
 
 RUN python ./abs.py > ./abs.pto
 RUN ptoas --enable-insert-sync ./abs.pto -o ./abs.cpp
+
+# for on-device execution
+RUN pip install --no-cache-dir torch==2.9.0 --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir torch-npu==2.9.0 \
+    && pip install --no-cache-dir numpy pyyaml
+    
+# extra util
+RUN pip install --no-cache-dir \
+    pytest pybind nanobind setuptools wheel \
+    ipython jupyterlab
