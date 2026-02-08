@@ -1,7 +1,9 @@
-# FROM quay.io/ascend/cann:8.5.0-910b-ubuntu22.04-py3.11
-FROM quay.io/ascend/python:3.11-ubuntu22.04
+FROM quay.io/ascend/cann:8.5.0-910b-ubuntu22.04-py3.11
+# FROM quay.io/ascend/python:3.11-ubuntu22.04
 # Use the `cann` base image if need to use bisheng and run on device
 # use `python` base image if just to test binding + ptoas
+
+RUN apt update && apt install -y wget git vim
 
 ARG ARCH=x86_64
 # ARG ARCH=aarch64
@@ -14,7 +16,6 @@ ARG CLI_TAR_NAME=ptoas-bin-${ARCH}.tar.gz
 WORKDIR /installers/
 
 # download assets from github release page
-RUN apt update && apt install -y wget git vim
 RUN wget https://github.com/${RELEASE_REPO}/releases/download/${RELEASE_TAG}/${WHEEL_NAME}
 RUN pip install ./${WHEEL_NAME}
 RUN python -c "import mlir.ir; from mlir.dialects import pto"
