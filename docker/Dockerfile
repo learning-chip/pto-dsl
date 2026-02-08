@@ -47,5 +47,5 @@ RUN pip install --no-cache-dir torch==2.9.0 --index-url https://download.pytorch
     
 # extra util
 RUN pip install --no-cache-dir \
-    pytest pybind nanobind setuptools wheel \
+    pytest pybind11 nanobind setuptools wheel \
     ipython jupyterlab
