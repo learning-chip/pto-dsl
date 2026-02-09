@@ -45,7 +45,7 @@ void LaunchTAdd(T *out, T *src0, T *src1, void *stream)
             );
     else 
         runTAdd<T, kTRows_, kTCols_, vRows, vCols><<<1, nullptr, stream>>>(
-            (__gm__ float *) out, (__gm__ float *) src0, (__gm__ float *) src1
+            out, src0, src1
             );
 }
 
@@ -61,4 +61,12 @@ extern "C" void call_kernel_fp32(
     // No need for blockDim here, hard-coded to 1
     LaunchTAdd<float, 64, 64, 64, 64>(
         (float *)out, (float *)src0, (float *)src1, stream);
+}
+
+extern "C" void call_kernel_int32(
+    void *stream, uint8_t *out, uint8_t *src0, uint8_t *src1)
+{
+    // No need for blockDim here, hard-coded to 1
+    LaunchTAdd<int32_t, 64, 64, 64, 64>(
+        (int32_t *)out, (int32_t *)src0, (int32_t *)src1, stream);
 }

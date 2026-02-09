@@ -21,7 +21,7 @@ def load_lib(lib_path):
             # make sure stream is lazy-queued after `torch.npu.set_device`
             stream_ptr = torch.npu.current_stream()._as_parameter_
 
-        lib.call_kernel_fp32(
+        lib.call_kernel_int32(
             stream_ptr,
             torch_to_ctypes(out),
             torch_to_ctypes(src0),
@@ -32,8 +32,8 @@ def load_lib(lib_path):
 
 
 def test_add():
-    device = "npu:0"
-    dtype = torch.float32
+    device = "npu:1"
+    dtype = torch.int32
     torch.npu.set_device(device)
 
     shape = [64, 64]  # shape hard-coded as the kernel
