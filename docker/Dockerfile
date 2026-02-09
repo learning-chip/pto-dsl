@@ -5,8 +5,20 @@ FROM quay.io/ascend/cann:8.5.0-910b-ubuntu22.04-py3.11
 
 RUN apt update && apt install -y wget git vim
 
-ARG ARCH=x86_64
-# ARG ARCH=aarch64
+# for on-device execution
+RUN pip install --no-cache-dir torch==2.9.0 --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir torch-npu==2.9.0 \
+    && pip install --no-cache-dir numpy pyyaml
+    
+# extra util
+RUN pip install --no-cache-dir \
+    pytest pybind11 nanobind setuptools wheel \
+    ipython jupyterlab
+
+# cache above layers unrelated to ptoas version change
+
+# ARG ARCH=x86_64
+ARG ARCH=aarch64
 ARG RELEASE_REPO=learning-chip/PTOAS
 # ARG RELEASE_REPO=zhangstevenunity/PTOAS
 ARG RELEASE_TAG=20260206
@@ -39,13 +51,3 @@ RUN ptoas ./tmatmulk.pto -o ./tmatmulk.cpp
 
 RUN python ./abs.py > ./abs.pto
 RUN ptoas --enable-insert-sync ./abs.pto -o ./abs.cpp
-
-# for on-device execution
-RUN pip install --no-cache-dir torch==2.9.0 --index-url https://download.pytorch.org/whl/cpu \
-    && pip install --no-cache-dir torch-npu==2.9.0 \
-    && pip install --no-cache-dir numpy pyyaml
-    
-# extra util
-RUN pip install --no-cache-dir \
-    pytest pybind11 nanobind setuptools wheel \
-    ipython jupyterlab
