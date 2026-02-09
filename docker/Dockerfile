@@ -21,7 +21,7 @@ RUN pip install --no-cache-dir \
 ARG ARCH=aarch64
 ARG RELEASE_REPO=learning-chip/PTOAS
 # ARG RELEASE_REPO=zhangstevenunity/PTOAS
-ARG RELEASE_TAG=20260206
+ARG RELEASE_TAG=20260209
 ARG WHEEL_NAME=ptoas-0.1.1-cp311-none-manylinux_2_34_${ARCH}.whl
 ARG CLI_TAR_NAME=ptoas-bin-${ARCH}.tar.gz
 
