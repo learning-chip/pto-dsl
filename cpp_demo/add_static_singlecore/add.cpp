@@ -66,7 +66,13 @@ extern "C" void call_kernel_fp32(
 extern "C" void call_kernel_int32(
     void *stream, uint8_t *out, uint8_t *src0, uint8_t *src1)
 {
-    // No need for blockDim here, hard-coded to 1
     LaunchTAdd<int32_t, 64, 64, 64, 64>(
         (int32_t *)out, (int32_t *)src0, (int32_t *)src1, stream);
+}
+
+extern "C" void call_kernel_fp16(
+    void *stream, uint8_t *out, uint8_t *src0, uint8_t *src1)
+{
+    LaunchTAdd<aclFloat16, 64, 64, 64, 64>(
+        (aclFloat16*)out, (aclFloat16*)src0, (aclFloat16*)src1, stream);
 }
