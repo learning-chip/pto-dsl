@@ -1,3 +1,5 @@
+rm add.pto add.cpp add_lib.so
+
 python ./add_builder.py > ./add.pto
 ptoas --enable-insert-sync ./add.pto -o ./add.cpp
 
