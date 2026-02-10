@@ -7,10 +7,6 @@ from mlir.ir import F32Type, IndexType, InsertionPoint, IntegerType
 def _unwrap(value):
     if isinstance(value, Value):
         return value.raw
-    if isinstance(value, list):
-        return [_unwrap(v) for v in value]
-    if isinstance(value, tuple):
-        return tuple(_unwrap(v) for v in value)
     return value
 
 
@@ -107,13 +103,15 @@ def index_cast(value, index_type=IndexType):
 
 
 def as_tensor(tensor_type, *, ptr, shape, strides):
-    return Value(pto.MakeTensorViewOp(tensor_type, _unwrap(ptr), _unwrap(shape), _unwrap(strides)).result)
+    shape_vals = [_unwrap(v) for v in shape]
+    stride_vals = [_unwrap(v) for v in strides]
+    return pto.MakeTensorViewOp(tensor_type, _unwrap(ptr), shape_vals, stride_vals).result
 
 
 def slice_view(subtensor_type, *, source, offsets, sizes):
-    return Value(
-        pto.PartitionViewOp(subtensor_type, _unwrap(source), offsets=_unwrap(offsets), sizes=_unwrap(sizes)).result
-    )
+    offset_vals = [_unwrap(v) for v in offsets]
+    size_vals = [_unwrap(v) for v in sizes]
+    return pto.PartitionViewOp(subtensor_type, source, offsets=offset_vals, sizes=size_vals).result
 
 
 @contextmanager
@@ -125,16 +123,16 @@ def vector_section():
 
 
 def alloc_tile(tile_type, *, valid_row, valid_col):
-    return Value(pto.AllocTileOp(tile_type, valid_row=_unwrap(valid_row), valid_col=_unwrap(valid_col)).result)
+    return pto.AllocTileOp(tile_type, valid_row=_unwrap(valid_row), valid_col=_unwrap(valid_col)).result
 
 
 def load(source, dest):
-    pto.TLoadOp(None, _unwrap(source), _unwrap(dest))
+    pto.TLoadOp(None, source, dest)
 
 
 def add(lhs, rhs, out):
-    pto.TAddOp(_unwrap(lhs), _unwrap(rhs), _unwrap(out))
+    pto.TAddOp(lhs, rhs, out)
 
 
 def store(source, dest):
-    pto.TStoreOp(None, _unwrap(source), _unwrap(dest))
+    pto.TStoreOp(None, source, dest)
