@@ -1,9 +1,10 @@
 
 ```bash
-sudo docker build . -t pto_dsl:py3.11
+RELEASE_TAG=20260210
+sudo docker build . -t pto_dsl:$RELEASE_TAG
 
 # test compile
-sudo docker run --rm -it pto_dsl:py3.11 /bin/bash
+sudo docker run --rm -it pto_dsl:$RELEASE_TAG /bin/bash
 
 # test execution
 sudo docker run --rm -it --ipc=host --privileged \
@@ -18,5 +19,5 @@ sudo docker run --rm -it --ipc=host --privileged \
     -v /usr/local/Ascend/driver:/usr/local/Ascend/driver:ro \
     -v /etc/ascend_install.info:/etc/ascend_install.info:ro \
     -v $HOME:/mounted_home -w /mounted_home \
-    pto_dsl:py3.11 /bin/bash
+    pto_dsl:$RELEASE_TAG /bin/bash
 ```
