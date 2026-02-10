@@ -14,11 +14,17 @@ def meta_data():
     # defaults to pto.TileBufConfig(blayout="RowMajor", slayout="NoneBox", s_fractal_size=512, pad="Null")
     tile_type = pto.TileBufType(
         shape=[32, 32], valid_shape=[-1, -1], dtype=dtype, memory_space="VEC", config=tile_cfg)
-    return [ptr_type, index_dtype, tensor_type, subtensor_type, tile_type]
+    return {
+        "ptr_type": ptr_type,
+        "index_dtype": index_dtype,
+        "tensor_type": tensor_type,
+        "subtensor_type": subtensor_type,
+        "tile_type": tile_type,
+    }
 
 
 @to_ir_module(meta_data=meta_data)
-def add_kernel_2d_dynamic(
+def vec_add_kernel_2d_dynamic(
     arg0: "ptr_type",
     arg1: "ptr_type",
     arg2: "ptr_type",
@@ -63,5 +69,5 @@ def add_kernel_2d_dynamic(
 
 
 if __name__ == "__main__":
-    module = add_kernel_2d_dynamic
+    module = vec_add_kernel_2d_dynamic
     print(module)
