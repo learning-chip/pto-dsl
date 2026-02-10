@@ -10,7 +10,7 @@ def build():
             m = Module.create()
 
             f32 = F32Type.get(ctx)
-            i32 = IntegerType.get_signless(32, ctx)  # 定义 i32 类型
+            i32 = IntegerType.get_signless(32, ctx)
             ptr_f32 = pto.PtrType.get(f32, ctx)
 
             tv2_f32 = pto.TensorViewType.get(2, f32, ctx)

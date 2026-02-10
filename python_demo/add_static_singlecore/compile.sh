@@ -13,5 +13,5 @@ bisheng \
     -mllvm -cce-aicore-dcci-insert-for-scalar=false \
     --npu-arch=dav-2201 -DMEMORY_BASE \
     -std=gnu++17 \
-    ./add.cpp \
-    -o ./add.so
+    ./caller.cpp \
+    -o ./add_lib.so
