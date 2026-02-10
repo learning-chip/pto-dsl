@@ -43,7 +43,7 @@ def add_kernel_2d_dynamic(
     tv1 = pto.as_tensor(tensor_type, ptr=arg1, shape=[c1280, c32], strides=[c32, c1])
     tv2 = pto.as_tensor(tensor_type, ptr=arg2, shape=[c1280, c32], strides=[c32, c1])
 
-    vid_idx = pto.index_cast(vid, index_type=IndexType)
+    vid_idx = pto.index_cast(vid)
     offset_row = vid_idx * c32  # every core loads 32 rows of data
     sv0 = pto.slice_view(subtensor_type, source=tv0, offsets=[offset_row, c0], sizes=[c32, c32])
     sv1 = pto.slice_view(subtensor_type, source=tv1, offsets=[offset_row, c0], sizes=[c32, c32])
