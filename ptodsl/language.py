@@ -41,6 +41,8 @@ def wrap_value(value):
 
 
 def __getattr__(name):
+    # TODO: add more builtin dtype aliases (for example float16/bfloat16/int8/int64)
+    # when they are validated against PTO type support.
     if name == "float32":
         return F32Type.get()
     if name == "int32":
@@ -62,6 +64,8 @@ def SubTensorType(*, shape, dtype):
 
 class TileBufConfig:
     def __init__(self, blayout="RowMajor", slayout="NoneBox", s_fractal_size=512, pad="Null"):
+        # TODO: expose and validate a broader set of tile buffer knobs if PTO adds
+        # more layout/padding/fractal settings that should be configurable here.
         self._bl = pto.BLayoutAttr.get(getattr(pto.BLayout, blayout))
         self._sl = pto.SLayoutAttr.get(getattr(pto.SLayout, slayout))
         self._pd = pto.PadValueAttr.get(getattr(pto.PadValue, pad))
