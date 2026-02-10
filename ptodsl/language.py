@@ -14,6 +14,20 @@ def _unwrap(value):
     return value
 
 
+class _LazyType:
+    def __init__(self, factory):
+        self._factory = factory
+
+    def resolve(self):
+        return self._factory()
+
+
+def _unwrap_type(value):
+    if isinstance(value, _LazyType):
+        return value.resolve()
+    return value
+
+
 class Value:
     def __init__(self, raw):
         self.raw = raw
@@ -40,20 +54,20 @@ def wrap_value(value):
     return Value(value)
 
 
-float32 = F32Type.get()
-int32 = IntegerType.get_signless(32)
+float32 = _LazyType(lambda: F32Type.get())
+int32 = _LazyType(lambda: IntegerType.get_signless(32))
 
 
 def PtrType(dtype):
-    return pto.PtrType.get(dtype)
+    return pto.PtrType.get(_unwrap_type(dtype))
 
 
 def TensorType(*, rank, dtype):
-    return pto.TensorViewType.get(rank, dtype)
+    return pto.TensorViewType.get(rank, _unwrap_type(dtype))
 
 
 def SubTensorType(*, shape, dtype):
-    return pto.PartitionTensorViewType.get(shape, dtype)
+    return pto.PartitionTensorViewType.get(shape, _unwrap_type(dtype))
 
 
 class TileBufConfig:
@@ -71,7 +85,7 @@ class TileBufConfig:
 def TileBufType(*, shape, valid_shape, dtype, memory_space, config):
     space = pto.AddressSpaceAttr.get(getattr(pto.AddressSpace, memory_space))
     cfg = config.attr if isinstance(config, TileBufConfig) else config
-    return pto.TileBufType.get(shape, dtype, space, valid_shape, cfg)
+    return pto.TileBufType.get(shape, _unwrap_type(dtype), space, valid_shape, cfg)
 
 
 def const(value):

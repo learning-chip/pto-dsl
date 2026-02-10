@@ -77,12 +77,12 @@ def _restore_globals(fn, old, injected_names):
 def to_ir_module(*, meta_data):
     def decorator(fn):
         sig = inspect.signature(fn)
-        meta_map = _resolve_meta(meta_data)
-        arg_types = _resolve_arg_types(sig, meta_map)
-        ret_types = _resolve_ret_types(sig, meta_map)
 
         with Context() as ctx, Location.unknown():
             pto.register_dialect(ctx, load=True)
+            meta_map = _resolve_meta(meta_data)
+            arg_types = _resolve_arg_types(sig, meta_map)
+            ret_types = _resolve_ret_types(sig, meta_map)
             module = Module.create()
             fn_ty = func.FunctionType.get(arg_types, ret_types)
 
