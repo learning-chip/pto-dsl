@@ -25,7 +25,7 @@ def meta_data():
     }
 
 
-def _vec_add_kernel_2d_dynamic(
+def vec_add_kernel_2d_dynamic(
     arg0: "ptr_type",
     arg1: "ptr_type",
     arg2: "ptr_type",
@@ -147,6 +147,7 @@ def build():
 
 
 def test_structural_ir_equality():
-    dsl_module = to_ir_module(meta_data=meta_data)(_vec_add_kernel_2d_dynamic)
+    # NOTE: function name also need to match
+    dsl_module = to_ir_module(meta_data=meta_data)(vec_add_kernel_2d_dynamic)
     ref_module = build()
     assert str(dsl_module) == str(ref_module)
