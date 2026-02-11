@@ -5,15 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pto-dsl"
 version = "0.1.0"
-description = "Pythonic DSL wrappers for building PTO MLIR modules"
+description = "Pythonic DSL for PTO-ISA"
 requires-python = ">=3.9"
 authors = [
   { name = "pto-dsl contributors" }
 ]
 
 [tool.setuptools]
-packages = ["ptodsl", "ptodsl.examples"]
+packages = ["ptodsl"]
 
 [tool.setuptools.package-dir]
 ptodsl = "."
-"ptodsl.examples" = "examples"
