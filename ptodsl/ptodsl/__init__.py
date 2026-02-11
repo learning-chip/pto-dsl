@@ -192,8 +192,7 @@ class JitWrapper:
         self._fn = fn
         self._meta_data = meta_data
         self._sig = inspect.signature(fn)
-        self._meta_map = _resolve_meta(meta_data)
-        self._arg_types = _resolve_arg_types(self._sig, self._meta_map)
+        self._arg_types = None
         self._output_dir = pathlib.Path(output_dir) if output_dir else pathlib.Path.cwd() / ".ptodsl_jit" / fn.__name__
         self._block_dim = block_dim
         self._enable_insert_sync = enable_insert_sync
@@ -270,9 +269,16 @@ class JitWrapper:
         ]
         subprocess.run(cmd, check=True, cwd=str(self._output_dir))
 
+    def _resolve_runtime_arg_types(self):
+        with Context() as ctx, Location.unknown():
+            pto.register_dialect(ctx, load=True)
+            meta_map = _resolve_meta(self._meta_data)
+            return _resolve_arg_types(self._sig, meta_map)
+
     def _build(self):
         self._output_dir.mkdir(parents=True, exist_ok=True)
         pto_path, cpp_path, caller_path, lib_path = self._artifact_paths()
+        self._arg_types = self._resolve_runtime_arg_types()
 
         ir_module = to_ir_module(meta_data=self._meta_data)(self._fn)
         pto_path.write_text(f"{ir_module}\n", encoding="utf-8")
