@@ -1,8 +1,8 @@
-from ptodsl import to_ir_module, pto_meta_data
+from ptodsl import to_ir_module
 import ptodsl.language as pto
 const = pto.const
 
-@pto_meta_data
+
 def meta_data():
     # common, reusable type declarations
     dtype = pto.float32

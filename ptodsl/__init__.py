@@ -6,10 +6,6 @@ from mlir.ir import Context, InsertionPoint, Location, Module
 from .language import wrap_value
 
 
-def pto_meta_data(fn):
-    return fn
-
-
 def _resolve_meta(meta_fn):
     values = meta_fn()
     if not isinstance(values, dict):
